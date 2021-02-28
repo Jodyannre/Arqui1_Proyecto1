@@ -1,3 +1,9 @@
+#include <Stepper.h>
+
+//------------------------------------------------------------------- para motor stepper
+#define STEPS 100 // creo q entre mas diminuto mas lento es
+Stepper stepper(STEPS, 11, 10, 9, 8);//defino su stpes, IN1,IN2,IN3,IN4
+//-------------------------------------------------------------------
 void setup() {
 
   Serial1.begin(9600);
@@ -8,19 +14,25 @@ void setup() {
   pinMode(A1, OUTPUT);//javier temperatura led green
   pinMode(A2, OUTPUT);//javier temperatura led yellow
   pinMode(A3, OUTPUT);//javier temperatura led red
-
+  stepperMove();//prueba del motor stepper
 }
+
+
 
 
 void loop() {
   // put your main code here, to run repeatedly:
 
 
-
+  //stepperMove();
   tiempo();//verifica los seg,dec,min de los 3 display hace la magia de timer
 
   temperatura();// verifica la temperatura y enciende los leds respectivos
-  delay(1000);//obligatorio sin esto el reloj iria mal
+  //stepperMove();//afecta llamar al steper aqui se lagea todo pero como dice q el reloj es del ensamblaje pues eso significa q en la cinta se esta moviendo de un lugar a otro lado por ende no se toca nada por ende el tiempo como q se detine xd
+
+  delay(500);//obligatorio sin esto el reloj iria mal
+
+
 
 
 
@@ -28,6 +40,7 @@ void loop() {
 
 }
 
+//**********************************************************   TODO LO RELACIONADO A TEMPERATURA   ****************************************************************
 void temperatura() {
   int val = analogRead(A0);//leo en A1
   int porcentaje = map(val, 21, 359, -40, 124);//lo paso a porcentaje
@@ -35,7 +48,7 @@ void temperatura() {
   Serial1.print("temperatura: ");
   Serial1.print(porcentaje);
   Serial1.println();
-  
+
   if (porcentaje < 37) {
     // Serial1.println("Led verde");
     digitalWrite(A1, HIGH);
@@ -57,7 +70,10 @@ void temperatura() {
 
 
 }
-//******************************************* no tocar
+
+
+//*************************************************************    TODO LO RELACIONADO AL RELOJ ****************************************************************8
+//******************************************* no tocar variables iniciales osea resetear cuando sea el momento
 int segundos = 0;
 int decimas = 1;
 int minuto = 1;
@@ -249,6 +265,14 @@ void tiempo() {
       printf("F\n" );
   }
 
+}
 
+
+//**************************************    motor      **************************************************
+
+void stepperMove() {
+
+  stepper.setSpeed(10);// defino la velocidad del motor xd
+  stepper.step(30);//bulgarmente digo q de 5 vueltas xd
 
 }
