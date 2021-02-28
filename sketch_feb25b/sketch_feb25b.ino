@@ -19,13 +19,13 @@ int vel_scroll = 0;
 
 
 //####****************************VARIABLES PARA RECIBIR DATOS***************************#####
-const byte numChars = 81; //Tamaño de buffer para recibir datos
+const byte numChars = 73; //Tamaño de buffer para recibir datos
 char stringRecibido[numChars]; //Array que guarda los datos recibidos en char
 char tempChars[numChars]; //Array backup de stringRecibido porque el separador va eliminado partes del array origina
 char delimitador[] = ","; //Deliminator de los elementos que trae el string desde la APP para separalos luego
 boolean newData = false; //Booleano que indica si hay nuevos datos para leer desde el serial
 char myStrings[8]; //Char que guardará cada fila del array de bytes para pintar cada estación
-char copia[9]; //Otra copia, de momento esta en desuso
+//char copia[9]; //Otra copia, de momento esta en desuso
 //#####*****************************VARIABLES PARA RECIBIR DATOS*****************************#####
 
 
@@ -38,6 +38,7 @@ char copia[9]; //Otra copia, de momento esta en desuso
 
 void setup() {
   Serial.begin(9600);
+  Serial3.begin(9600);
   inicializarMatriz();
 }
 
@@ -54,16 +55,18 @@ void loop() {
 
   //letrero(); //Letrero mientras no se usan las matrices
 
+
+  lecturaSerial();//Leyendo la entrada serial
   
-    lecturaSerial();//Leyendo la entrada serial
-    if (newData == true) {
-      Serial.println("Nuevos datos encontrados");
-        strcpy(tempChars, stringRecibido);
-            // Hacer una copia de seguridad de los datos
-        parseData(); //Convirtiendo datos de entrada
-        newData = false;
-    }
-  
+  if (newData == true) {
+    Serial3.println("Nuevos datos encontrados");
+    strcpy(tempChars, stringRecibido);
+    // Hacer una copia de seguridad de los datos
+    parseData(); //Convirtiendo datos de entrada
+    newData = false;
+  }
+  //Serial3.println("Esta en el loop");
+
 
 }
 
@@ -78,70 +81,75 @@ void lecturaSerial() { //Método que se encarga de leer las entradas en string
   static boolean recvInProgress = false;
   static byte ndx = 0;
   char startMark = '<';
-  char endMark = '>';
   char rc;
-  //Serial.println("Leyendo serial");
   while (Serial.available() > 0 && newData == false) {
-    Serial.println("Leyendo serial");
+    delay(5);
+    Serial3.println(ndx);
     rc = Serial.read();
-
-    if (recvInProgress == true) {
-      if (rc != endMark) {
-        stringRecibido[ndx] = rc;
-        ndx++;
-        if (ndx >= numChars) {
-          ndx = numChars - 1;
-        }
-      }
-      else {
-        stringRecibido[ndx] = '\0'; // Termino el string
-        recvInProgress = false;
-        ndx = 0;
-        newData = true;
-      }
-    }
-
-    else if (rc == startMark) {
-      recvInProgress = true;
+    Serial3.println(rc);
+    delay(5);
+    stringRecibido[ndx] = rc;
+    ndx++;
+    if (ndx >= numChars) {
+      ndx = numChars - 1;
     }
   }
+  if (ndx != 0) {
+    stringRecibido[ndx] = '\0'; // Termino el string
+    Serial3.println(ndx);
+    ndx = 0;
+    newData = true;
+  }
+
 }
 
 
 
 void parseData() {      //Separar char, convertirlo a string y pintar la matriz
   int i = 0;
-  char * index; 
-
+  char * index;
+  //&on  motor
+  //&off  motor
+  //$on emergencia
+  //@on aceptar
+  // #2 estación
+  
   index = strtok(tempChars, delimitador);
   String s = "";
   while (index != NULL) {
     myStrings[i] = index;
-    s=index;
-    s = s.substring(0, s.length()-1);
-    for (int j=0;j<s.length();j++){
-      Serial.println("Esta en el for");
+    s = index;
+    if (s.indexOf("<") != -1) {
+      s = s.substring(1, s.length());
+    } else if (s.indexOf(">") != -1) {
+      s = s.substring(0, s.length() - 1);
+    } else {
+      s = s.substring(0, s.length());
+    }
+
+    for (int j = 0; j < s.length(); j++) {
+      Serial3.println("Esta en el for");
       Serial.println("Evaluando");
       Serial.println(s);
       Serial.println("caracter");
       Serial.println(s.charAt(j));
-      if ((int)s.charAt(j)=='1'){
+      if ((int)s.charAt(j) == '1') {
         Serial.println("Es igual");
-        matrix.setLed(1,i,j,true);
+        matrix.setLed(1, i, j, true);
       }
     }
     index = strtok(NULL, delimitador);
-    i++;   
+    i++;
     delay(100);
   }
-  delay(10000);  
+  delay(10000);
   for (int i = 0; i < sizeof(myStrings); i++) {
-    Serial.println("En el for");
+    Serial3.println("En el for");
     //Serial.println(myStrings[i]);
     delay(500);
-    if(myStrings[i] == '\0') {
+    if (myStrings[i] == '\0') {
       Serial.println("Ya no hay mas informacion");
-      }
+    }
   }
 
 }
@@ -199,7 +207,7 @@ const PROGMEM bool Message[8][104] = { //Mensaje a mostrar
 
 void mensajeScroll(int estado) { //Scroll del texto de izquierda a derecha
   [&] {
-    for (int d = 0; d < sizeof(Message[0]) - 7; d++) { 
+    for (int d = 0; d < sizeof(Message[0]) - 7; d++) {
       for (int col = 0; col < 8; col++) {
 
         for (int row = 0; row < 8; row++) {
