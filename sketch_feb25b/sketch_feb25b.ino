@@ -1,5 +1,5 @@
 #include <LedControl.h> //Librería para el control de las matrices
-
+#include <pt.h>
 
 
 //#####*****************************DEFINICIÓN DE VARIABLES GLOBALES*****************************#####
@@ -41,9 +41,9 @@ int producto[8];
 
 //####****************************VARIABLES DE ESTADOS DE LAS MATRICES***************************#####
 
-boolean mt1 = false;
-boolean mt2 = false;
-boolean mt3 = false;
+static boolean mt1 = false;
+static boolean mt2 = false;
+static boolean mt3 = false;
 
 
 boolean datosRecibidos = false;
@@ -51,6 +51,12 @@ int contadorTemp = 0;
 int contadorLugar = 1;
 
 //####****************************VARIABLES DE ESTADOS DE LAS MATRICES***************************#####
+
+
+//####****************************PROBANDO HILOS***************************#####
+
+//####****************************PROBANDO HILOS***************************#####
+
 
 
 
@@ -140,11 +146,16 @@ void loop() {
 
 
   if (btnIn1State == HIGH) {
-    matrix.clearDisplay(0);
+    //matrix.clearDisplay(0);
     Serial.write("si");
     delay(100);
   }
   //--------------------------BOTON DE LOGIN
+
+
+  //-------------------------IMPRESIÓN DE MATRICES QUE NO ESTÁN SIENDO UTILIZADAS
+  letrero();
+  //-------------------------IMPRESIÓN DE MATRICES QUE NO ESTÁN SIENDO UTILIZADAS
 }
 
 //#####*****************************LOOP PRINCIPAL*****************************#####
@@ -196,14 +207,13 @@ void imprimirMatriz(int numeroMatriz, int lugar) {
   //$on emergencia
   //@on aceptar
   // #2 estación
-    if (numeroMatriz == 1) {
-      mt1 = true;
-    }else if (numeroMatriz==2){
-      mt2 = true;
-    }else if (numeroMatriz==3){
-      mt3 = true;
-    }
-  letrero();    
+  if (numeroMatriz == 0) {
+    mt1 = true;
+  } else if (numeroMatriz == 1) {
+    mt2 = true;
+  } else if (numeroMatriz == 2) {
+    mt3 = true;
+  }
   imprimirNumeroEstacion(numeroMatriz, lugar);
   while (contador < 14) {
     //Imprime la matriz dependiendo del número de matriz seleccionado
@@ -217,13 +227,13 @@ void imprimirMatriz(int numeroMatriz, int lugar) {
     matrix.setColumn(numeroMatriz, 1, producto[1]);
     matrix.setColumn(numeroMatriz, 2, producto[2]);
     if (lugar == 2) {
-      
+
       matrix.setColumn(numeroMatriz, 3, producto[3]);
       matrix.setColumn(numeroMatriz, 4, producto[4]);
       matrix.setColumn(numeroMatriz, 5, producto[5]);
 
     } else if (lugar == 3 || lugar == 4) {
-      
+
       matrix.setColumn(numeroMatriz, 3, producto[3]);
       matrix.setColumn(numeroMatriz, 4, producto[4]);
       matrix.setColumn(numeroMatriz, 5, producto[5]);
@@ -324,14 +334,14 @@ const PROGMEM bool Message[8][104] = { //Mensaje a mostrar
 
 const PROGMEM bool Mensaje[8][60] =
 {
-  {0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0},
-  {0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0,0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0,0},
-  {0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0,1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,0},
-  {0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0,1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0,0},
-  {0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0,1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0},
-  {0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0,1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0,0},
-  {0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0},
-  {0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0}
+  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 };
 
 
@@ -344,29 +354,41 @@ void mensajeScroll() { //Scroll del texto de izquierda a derecha
         for (int row = 0; row < 8; row++) {
           if (!mt1) {
             matrix.setLed(0, row, col, pgm_read_byte(&(Mensaje[row + 1][col + 2 - d])));
+            btnIn1State = digitalRead(btnIn1);
+            if (btnIn1State == HIGH) {
+              return;
+            }
           }
           if (!mt2) {
             matrix.setLed(1, row, col, pgm_read_byte(&(Mensaje[row + 1][col + 2 - d])));
+            btnIn1State = digitalRead(btnIn1);
+            if (btnIn1State == HIGH) {
+              return;
+            }
           }
           if (!mt3) {
             matrix.setLed(2, row, col, pgm_read_byte(&(Mensaje[row + 1][col + 2 - d])));
+            btnIn1State = digitalRead(btnIn1);
+            if (btnIn1State == HIGH) {
+              return;
+            }
           }
 
         }
 
       }
     }
-    
+
   }();
-          if (!mt1) {
-            matrix.clearDisplay(0);
-          }
-          if (!mt2) {
-            matrix.clearDisplay(1);
-          }
-          if (!mt3) {
-            matrix.clearDisplay(2);
-          }
+  if (!mt1) {
+    matrix.clearDisplay(0);
+  }
+  if (!mt2) {
+    matrix.clearDisplay(1);
+  }
+  if (!mt3) {
+    matrix.clearDisplay(2);
+  }
 }
 
 //#####********************************LETRERO MIENTRAS NO SE USAN LAS ESTACIONES********************************#####
