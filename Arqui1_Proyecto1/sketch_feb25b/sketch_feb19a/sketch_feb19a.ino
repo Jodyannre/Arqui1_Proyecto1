@@ -1,4 +1,45 @@
 #include <Stepper.h>
+#include <Key.h>
+#include <Keypad.h>
+#include <LiquidCrystal.h>
+
+//pines de lcd
+const int rs = 53;
+const int enable = 51;
+const int d4 = 29;
+const int d3 = 27;
+const int d2 = 25;
+const int d1 = 23;
+//pines de keypad
+//filas
+const int f1 = 4;
+const int f2 = 3;
+const int f3 = 2;
+const int f4 = 1;
+//columnas
+const int c1 = 7;
+const int c2 = 6;
+const int c3 = 5;
+
+//PASSWORD
+const String user = "123456";
+
+bool usuariocorrecto = false;
+
+const byte rows = 4; //four rows
+const byte cols = 3; //three columns
+char keys[rows][cols] = {
+  {'1', '2', '3'},
+  {'4', '5', '6'},
+  {'7', '8', '9'},
+  {'*', '0', '#'}
+};
+
+byte rowPins[rows] = {f1, f2, f3, f4}; //connect to the row pinouts of the keypad
+byte colPins[cols] = {c1, c2, c3}; //connect to the column pinouts of the keypad
+Keypad teclado = Keypad( makeKeymap(keys), rowPins, colPins, rows, cols );
+
+LiquidCrystal lcd(rs, enable, d4, d3, d2, d1);
 
 //------------------------------------------------------------------- para motor stepper
 #define STEPS 100 // creo q entre mas diminuto mas lento es
@@ -7,6 +48,9 @@ Stepper stepper(STEPS, 11, 10, 9, 8);//defino su stpes, IN1,IN2,IN3,IN4
 void setup() {
 
   Serial1.begin(9600);
+
+  lcd.begin(16, 2);
+  
   DDRK = B11111111;
   DDRL = B11111111;
   DDRC = B11111111;
@@ -14,7 +58,7 @@ void setup() {
   pinMode(A1, OUTPUT);//javier temperatura led green
   pinMode(A2, OUTPUT);//javier temperatura led yellow
   pinMode(A3, OUTPUT);//javier temperatura led red
-  stepperMove();//prueba del motor stepper
+  //stepperMove();//prueba del motor stepper
 }
 
 
@@ -23,6 +67,13 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
 
+  
+
+  if(usuariocorrecto == false){
+    ingreso();
+  }
+
+  else{
 
   //stepperMove();
   tiempo();//verifica los seg,dec,min de los 3 display hace la magia de timer
@@ -31,12 +82,8 @@ void loop() {
   //stepperMove();//afecta llamar al steper aqui se lagea todo pero como dice q el reloj es del ensamblaje pues eso significa q en la cinta se esta moviendo de un lugar a otro lado por ende no se toca nada por ende el tiempo como q se detine xd
 
   delay(500);//obligatorio sin esto el reloj iria mal
-
-
-
-
-
-
+    
+  }
 
 }
 
@@ -54,11 +101,18 @@ void temperatura() {
     digitalWrite(A1, HIGH);
     digitalWrite(A2, LOW);
     digitalWrite(A3, LOW);
+    lcd.clear();
   } else if (porcentaje > 36 && porcentaje < 46) {
     // Serial1.println("Led amarilla");
     digitalWrite(A1, LOW);
     digitalWrite(A2, HIGH);
     digitalWrite(A3, LOW);
+
+    lcd.setCursor(0, 0);
+    lcd.print("WARNING");
+    //delay(2000);
+    //lcd.clear();
+  
     // en lcd imprimir warning
   } else {
     // Serial1.println("Led rojo");
@@ -66,6 +120,11 @@ void temperatura() {
     digitalWrite(A2, LOW);
     digitalWrite(A3, HIGH);
     // en lcd imprimir ERROR
+    lcd.setCursor(0, 0);
+    lcd.print("ERROR");
+    //delay(2000);
+    //lcd.clear();
+    
   }
 
 
@@ -275,4 +334,46 @@ void stepperMove() {
   stepper.setSpeed(10);// defino la velocidad del motor xd
   stepper.step(30);//bulgarmente digo q de 5 vueltas xd
 
+}
+
+
+//**************************************    teclado      **************************************************
+void ingreso() {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("INGRESE SU");
+  lcd.setCursor(0, 1);
+  lcd.print("USUARIO");
+  delay(2000);
+  lcd.clear();
+  lcd.print("USUARIO:");
+  char c = '\0';
+  String pass_pad = "";
+  int contador_ingresopad = 0;
+  while (true) {
+    c = teclado.getKey();
+    if (c == '*') break;
+    if (c != NO_KEY) {
+      pass_pad += c;
+      lcd.setCursor(contador_ingresopad, 1);
+      lcd.print(c);
+      contador_ingresopad++;
+    }
+  }
+
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  if (pass_pad == user) {
+    lcd.print("USUARIO");
+    lcd.setCursor(0, 1);
+    lcd.print("CORRECTO");
+    delay(1000);
+    lcd.clear();
+    usuariocorrecto = !false;
+  }
+  else {
+
+    lcd.print("ERROR");
+    delay(1000);
+    }
 }
