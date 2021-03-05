@@ -1,5 +1,6 @@
 #include <LedControl.h> //Librería para el control de las matrices
 #include <pt.h>
+#include <Stepper.h>
 
 
 //#####*****************************DEFINICIÓN DE VARIABLES GLOBALES*****************************#####
@@ -49,11 +50,33 @@ static boolean mt3 = false;
 boolean datosRecibidos = false;
 int contadorTemp = 0;
 int contadorLugar = 1;
+boolean matrizActiva = false;
 
 //####****************************VARIABLES DE ESTADOS DE LAS MATRICES***************************#####
 
 
+
+
+//####****************************STEPPER***************************#####
+//Contador estado stepper
+#define STEPS 100 // creo q entre mas diminuto mas lento es
+Stepper stepper(STEPS, 53, 52, 51, 50);//defino su stpes, IN1,IN2,IN3,IN4
+int stepperActivo = false;
+
+
+//####****************************STEPPER***************************#####
+
+
+
 //####****************************PROBANDO HILOS***************************#####
+
+
+struct msj {
+  int d = 0, col = 0, row = 0;
+  msj(int d = 0, int col = 0, int row = 0): d(d), col(col), row(row) {}
+};
+
+msj msj(0,0,0);
 
 //####****************************PROBANDO HILOS***************************#####
 
@@ -83,7 +106,7 @@ void setup() {
 //#####*****************************LOOP PRINCIPAL*****************************#####
 
 void loop() {
-
+  
   //--------------------------VARIABLES LECTURA SERIAL Y OPCION
   instruccion = "";
   opcion = '\0';
@@ -112,7 +135,7 @@ void loop() {
   switch (opcion) {
     case '<':
       //datos matriz
-      delay(1000);
+      delay(5);
       guardarObjeto(instruccion);
       break;
     case '&':
@@ -125,11 +148,21 @@ void loop() {
       //emergencia
       break;
     case '#':
+      matrizActiva = true;
+      Serial3.println("Se envio la estación");
+      Serial3.println(instruccion);
+      Serial3.println(instruccion.charAt(0));
+      imprimirMatriz(instruccion.charAt(0), contadorLugar);
+      contadorLugar++;
       //numero de estacion
+      if (contadorLugar>3){
+        imprimirMatriz('4',contadorLugar);
+      }
+      matrizActiva = false;
       break;
   }
   //--------------------------TIPO DE INSTRUCCION
-
+/*
   if (datosRecibidos) {
     imprimirMatriz(contadorTemp, contadorLugar);
     contadorTemp++;
@@ -138,7 +171,7 @@ void loop() {
       datosRecibidos = false;
     }
   }
-
+*/
 
   //--------------------------BOTON DE LOGIN
 
@@ -154,6 +187,7 @@ void loop() {
 
 
   //-------------------------IMPRESIÓN DE MATRICES QUE NO ESTÁN SIENDO UTILIZADAS
+  //stepperMove();
   letrero();
   //-------------------------IMPRESIÓN DE MATRICES QUE NO ESTÁN SIENDO UTILIZADAS
 }
@@ -199,8 +233,19 @@ void guardarObjeto(String cadena) {
 //#####********************************IMPRESION DE MATRIZ********************************####
 
 
-void imprimirMatriz(int numeroMatriz, int lugar) {
-  int parpadeo = 300;
+void imprimirMatriz(char numMatriz, int lugar) {
+  int numeroMatriz; 
+  if (numMatriz =='1'){
+    numeroMatriz = 0;
+  }else if (numMatriz =='2'){
+    numeroMatriz = 1;
+  }else if (numMatriz =='3'){
+    numeroMatriz = 2;
+  }else if (numMatriz =='4'){
+    numeroMatriz = 3;
+  }
+  
+  int parpadeo = 250;
   int contador = 1;
   //&on  motor
   //&off  motor
@@ -215,13 +260,19 @@ void imprimirMatriz(int numeroMatriz, int lugar) {
     mt3 = true;
   }
   imprimirNumeroEstacion(numeroMatriz, lugar);
-  while (contador < 14) {
+  while (contador < 5) {
     //Imprime la matriz dependiendo del número de matriz seleccionado
     if (contador != 1) {
-      delay(parpadeo);
+      if (numeroMatriz == 2 || numeroMatriz == 3 || numeroMatriz == 4){
+        delay(parpadeo); 
+      }    
+      mensajeScroll();
       matrix.shutdown(numeroMatriz, false);
       matrix.clearDisplay(numeroMatriz);
-      delay(parpadeo);
+      if (numeroMatriz == 2 || numeroMatriz == 3 || numeroMatriz == 4){
+        delay(parpadeo); 
+      }  
+      mensajeScroll();
     }
     matrix.setColumn(numeroMatriz, 0, producto[0]);
     matrix.setColumn(numeroMatriz, 1, producto[1]);
@@ -242,7 +293,7 @@ void imprimirMatriz(int numeroMatriz, int lugar) {
     }
     switch (contador) {
       case 3:
-        parpadeo = 250;
+        parpadeo = 200;
         break;
       case 5:
         parpadeo = 150;
@@ -263,10 +314,10 @@ void imprimirMatriz(int numeroMatriz, int lugar) {
 }
 
 
-void imprimirNumeroEstacion(int numeroMatriz, int lugar) {
+void imprimirNumeroEstacion(char numeroMatriz, int lugar) {
   if (lugar != 4) {
     switch (numeroMatriz) {
-      case 0:
+      case '0':
         matrix.setRow(3, 0, UNO[0]);
         matrix.setRow(3, 1, UNO[1]);
         matrix.setRow(3, 2, UNO[2]);
@@ -276,7 +327,7 @@ void imprimirNumeroEstacion(int numeroMatriz, int lugar) {
         matrix.setRow(3, 6, UNO[6]);
         matrix.setRow(3, 7, UNO[7]);
         break;
-      case 1:
+      case '1':
         matrix.setRow(3, 0, UNO[0]);
         matrix.setRow(3, 1, DOS[1]);
         matrix.setRow(3, 2, DOS[2]);
@@ -286,7 +337,7 @@ void imprimirNumeroEstacion(int numeroMatriz, int lugar) {
         matrix.setRow(3, 6, DOS[6]);
         matrix.setRow(3, 7, DOS[7]);
         break;
-      case 2:
+      case '2':
         matrix.setRow(3, 0, UNO[0]);
         matrix.setRow(3, 1, TRES[1]);
         matrix.setRow(3, 2, TRES[2]);
@@ -348,36 +399,48 @@ const PROGMEM bool Mensaje[8][60] =
 
 void mensajeScroll() { //Scroll del texto de izquierda a derecha
   [&] {
-    for (int d = 0; d < sizeof(Mensaje[0]) - 7; d++) {
-      for (int col = 0; col < 8; col++) {
+    for (int d = msj.d; d < sizeof(Mensaje[0]) - 7; d++) {
+      Serial3.println(d);
+      for (int col = msj.col; col < 8; col++) {
 
-        for (int row = 0; row < 8; row++) {
+        for (int row = msj.row; row < 8; row++) {
           if (!mt1) {
             matrix.setLed(0, row, col, pgm_read_byte(&(Mensaje[row + 1][col + 2 - d])));
             btnIn1State = digitalRead(btnIn1);
-            if (btnIn1State == HIGH) {
+            if (btnIn1State == HIGH || Serial.available()) {
               return;
             }
           }
           if (!mt2) {
             matrix.setLed(1, row, col, pgm_read_byte(&(Mensaje[row + 1][col + 2 - d])));
             btnIn1State = digitalRead(btnIn1);
-            if (btnIn1State == HIGH) {
+            if (btnIn1State == HIGH || Serial.available()) {
               return;
             }
           }
           if (!mt3) {
             matrix.setLed(2, row, col, pgm_read_byte(&(Mensaje[row + 1][col + 2 - d])));
             btnIn1State = digitalRead(btnIn1);
-            if (btnIn1State == HIGH) {
+            if (btnIn1State == HIGH || Serial.available()) {
               return;
             }
           }
-
-        }
-
+          msj.row = msj.row+1;
+          //return;
+        }   
+        msj.row = 0;
+        msj.col = msj.col+1;
+        
+      }
+      msj.col = 0;
+      msj.d = msj.d+1;
+      if ((stepperActivo||matrizActiva)){
+        //Otra condición posible
+        //(msj.d == 4 || msj.d == 8 || msj.d == 12|| msj.d == 16|| msj.d == 20|| msj.d == 24|| msj.d == 28|| msj.d == 32|| msj.d == 36|| msj.d == 40|| msj.d == 44|| msj.d == 48|| msj.d == 52) && 
+        return;
       }
     }
+    msj.d = 0;
 
   }();
   if (!mt1) {
@@ -392,3 +455,14 @@ void mensajeScroll() { //Scroll del texto de izquierda a derecha
 }
 
 //#####********************************LETRERO MIENTRAS NO SE USAN LAS ESTACIONES********************************#####
+
+
+
+
+//#####********************************STEPPER********************************#####
+void stepperMove() {
+  stepper.setSpeed(10);// defino la velocidad del motor xd
+  stepper.step(7);//bulgarmente digo q de 5 vueltas xd
+}
+
+//#####********************************STEPPER********************************#####
