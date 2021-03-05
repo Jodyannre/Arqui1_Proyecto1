@@ -110,7 +110,7 @@ void temperatura() {
   int porcentaje = map(val, 21, 359, -40, 124);//lo paso a porcentaje
 
   if(contador == 0){ // Manda la temperatura inicial, sin el delay no se muestra correctamente
-    delay(1500);
+    delay(1400);
     contador++;
   }
 
