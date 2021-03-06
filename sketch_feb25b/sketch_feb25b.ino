@@ -7,7 +7,7 @@
 
 //#####*****************************DEFINICIÓN DE VARIABLES GLOBALES*****************************#####
 int vel_scroll = 0; //Variable para controlar la velocidad del mensaje scroll
-const String user = "123456"; //Contraseña
+const String user = "1"; //Contraseña
 const byte rows = 4; //4 filas
 const byte cols = 3; //3 columnas
 const int btnIn1 = 2; //boton de prueba pasar a pantalla 2 comentar cuando ya no sea necesario
@@ -37,12 +37,12 @@ boolean matrizActiva = false; //Determina si alguna la matriz está lista para i
 boolean stepperActivo = false; //Determina si el stepper fue activado en la aplicación
 
 //pines de lcd
-const int rs = 41;
-const int enable = 40;
-const int d4 = 39;
-const int d3 = 38;
-const int d2 = 37;
-const int d1 = 29;
+const int rs = 23;
+const int enable = 22;
+const int d4 = 38;//d4
+const int d3 = 39;//d5
+const int d2 = 40;//d6
+const int d1 = 41;//d7
 //pines de keypad
 //filas
 const int f1 = 4;
@@ -134,7 +134,7 @@ void loop() {
     ingreso();
     if (usuariocorrecto) {
       Serial.write("si");
-      delay(10);
+      delay(50);
     }
   }
 
@@ -254,7 +254,7 @@ void imprimirMatriz(char numMatriz, int lugar) {
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print(mensajeEstacion);
-  int numeroMatriz;
+  int numeroMatriz=0;
   if (numMatriz == '1') {
     numeroMatriz = 0;
   } else if (numMatriz == '2') {
@@ -264,7 +264,9 @@ void imprimirMatriz(char numMatriz, int lugar) {
   } else if (numMatriz == '4') {
     numeroMatriz = 3;
   }
-
+  Serial3.print("Estación: ");
+  Serial3.println(numMatriz);
+  Serial3.println(numeroMatriz);
   int parpadeo = 250;
   int contador = 1;
   //&on  motor
@@ -339,6 +341,7 @@ void imprimirMatriz(char numMatriz, int lugar) {
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("MOVIENDOSE");
+    Serial3.print("Stepper moviendose");
     stepperMove(); //Mover el stepper
     contarTiempo(); //Verifica el tiempo actual
     lcd.clear();
@@ -349,10 +352,11 @@ void imprimirMatriz(char numMatriz, int lugar) {
 }
 
 
-void imprimirNumeroEstacion(char numeroMatriz, int lugar) {
+void imprimirNumeroEstacion(int numeroMatriz, int lugar) {
+
   if (lugar != 4) {
     switch (numeroMatriz) {
-      case '0':
+      case 0:
         matrix.setRow(3, 0, UNO[0]);
         matrix.setRow(3, 1, UNO[1]);
         matrix.setRow(3, 2, UNO[2]);
@@ -362,7 +366,7 @@ void imprimirNumeroEstacion(char numeroMatriz, int lugar) {
         matrix.setRow(3, 6, UNO[6]);
         matrix.setRow(3, 7, UNO[7]);
         break;
-      case '1':
+      case 1:
         matrix.setRow(3, 0, UNO[0]);
         matrix.setRow(3, 1, DOS[1]);
         matrix.setRow(3, 2, DOS[2]);
@@ -372,7 +376,7 @@ void imprimirNumeroEstacion(char numeroMatriz, int lugar) {
         matrix.setRow(3, 6, DOS[6]);
         matrix.setRow(3, 7, DOS[7]);
         break;
-      case '2':
+      case 2:
         matrix.setRow(3, 0, UNO[0]);
         matrix.setRow(3, 1, TRES[1]);
         matrix.setRow(3, 2, TRES[2]);
@@ -518,7 +522,8 @@ void stepperMove() {
 void temperatura() {
   int val = analogRead(A0);//leo en A1
   int porcentaje = map(val, 21, 359, -40, 124);//lo paso a porcentaje
-
+  String valor="@";
+  String conversion;
   Serial1.print("temperatura: ");
   Serial1.print(porcentaje);
   Serial1.println();
@@ -552,9 +557,16 @@ void temperatura() {
     lcd.setCursor(0, 0);
     lcd.print("ERROR");
     delay(1000);
+    //Enviar señal a app para reiniciar<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     reiniciar();
     //lcd.clear();
   }
+  conversion = String(porcentaje);
+  valor +=conversion;
+  Serial.print(valor);//Envio de señal de temperatura
+  valor="@";
+  conversion="";
+  
 }
 
 //**********************************************************   TODO LO RELACIONADO A TEMPERATURA   ****************************************************************
@@ -768,6 +780,8 @@ void tiempo() {
     default :
       printf("F\n" );
   }
+//Envio de tiempo a la aplicación<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
 }
 
 
@@ -821,7 +835,7 @@ void ingreso() {
     
     lcd.print("ERROR");
     delay(500);
-    //Enviar señal a la app para reiniciar<--------
+    //Enviar señal a la app para reiniciar<---------------------------------------------
     reiniciar();
   }
 }
@@ -836,6 +850,8 @@ void reiniciar() {
   segundos = 0;
   decimas = 1;
   minuto = 1;
+  PORTL = B11111100; //Impresión 0 en display
+  PORTC = B11111100; //Impresión 0 en display
   decOn = false;
   minOn = false;
   //Reiniciar matrices y stepper
