@@ -21,6 +21,14 @@ int producto[8]; //Matriz que guarda el producto a imprimir
 int contadorTemp = 0;  //Contador temporal del número de matrices
 long tiempoMillis = 0; //Variable para llevar el control del tiempo y poder contar en el reloj
 String mensajeEstacion = "ESTACION "; //Mensaje que mostrará la estación actual
+// variables temporales para el reloj
+int dectemp = 0;
+int mintemp = 0;
+int sectemp = 0;
+
+int tempInicial = 0;
+String valor;
+String conjunto = "";
 
 //Impresiones en matriz de mensajes predefinidos
 byte UNO[8] {B00000000, B00011000, B00011000, B00111000, B00011000, B00011000, B00011000, B01111110}; //Número 1 para mostrar en matriz
@@ -92,8 +100,8 @@ msj msj(0, 0, 0); //Creación del struct msj matriz
 void setup() {
   Serial.begin(9600); //Serial de lectura de datos de entrada
   Serial3.begin(9600); //Serial de lectura de datos de salida desde arduino
-  //Timer1.initialize(10000000);
-  //Timer1.attachInterrupt(tiempo); //Inicialización del timer encargado del contador
+  Timer1.initialize(10000000);
+  Timer1.attachInterrupt(tiempo); //Inicialización del timer encargado del contador
   lcd.begin(16, 2);
 
   //Puertos DDR
@@ -254,7 +262,7 @@ void imprimirMatriz(char numMatriz, int lugar) {
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print(mensajeEstacion);
-  int numeroMatriz=0;
+  int numeroMatriz = 0;
   if (numMatriz == '1') {
     numeroMatriz = 0;
   } else if (numMatriz == '2') {
@@ -264,16 +272,12 @@ void imprimirMatriz(char numMatriz, int lugar) {
   } else if (numMatriz == '4') {
     numeroMatriz = 3;
   }
-  Serial3.print("Estación: ");
-  Serial3.println(numMatriz);
-  Serial3.println(numeroMatriz);
+  //Serial3.print("Estación: ");
+  //Serial3.println(numMatriz);
+  //Serial3.println(numeroMatriz);
   int parpadeo = 250;
   int contador = 1;
-  //&on  motor
-  //&off  motor
-  //$on emergencia
-  //@on aceptar
-  // #2 estación
+
   if (numeroMatriz == 0) {
     mt1 = true;
   } else if (numeroMatriz == 1) {
@@ -281,13 +285,27 @@ void imprimirMatriz(char numMatriz, int lugar) {
   } else if (numeroMatriz == 2) {
     mt3 = true;
   }
+  switch (lugar) {
+    case 1:
+      parpadeo = 5;
+      break;
+    case 2:
+      parpadeo = 5;
+      break;
+    case 3:
+      parpadeo = 100;
+      break;
+    case 4:
+      parpadeo = 100;
+      break;
+  }
   imprimirNumeroEstacion(numeroMatriz, lugar); //Imprimir como primer lugar el número de estación actual
   while (contador < 5) {
     //Imprime la matriz dependiendo del número de matriz seleccionado
     if (contador != 0) {
       if (numeroMatriz == 0 || numeroMatriz == 1 || numeroMatriz == 2 || numeroMatriz == 3 || numeroMatriz == 4) {
         delay(parpadeo);
-        contarTiempo(); //Verifica el contador del reloj
+        //contarTiempo(); //Verifica el contador del reloj
         mensajeScroll(); //Imprimir un movimiento del mensaje scroll
       }
       mensajeScroll();
@@ -295,7 +313,7 @@ void imprimirMatriz(char numMatriz, int lugar) {
       matrix.clearDisplay(numeroMatriz);
       if (numeroMatriz == 0 || numeroMatriz == 1 || numeroMatriz == 2 || numeroMatriz == 3 || numeroMatriz == 4) {
         delay(parpadeo);
-        contarTiempo(); //Verifica el contador del reloj
+        //contarTiempo(); //Verifica el contador del reloj
         mensajeScroll(); //Imprimir un movimiento del mensaje scroll
       }
 
@@ -334,18 +352,18 @@ void imprimirMatriz(char numMatriz, int lugar) {
         parpadeo = 250;
         break;
     }
-    contarTiempo();
+    //contarTiempo();
     contador++;
   }
   if (stepperActivo) { //Si el stepper esta activo lo mueve luego de cada producción
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("MOVIENDOSE");
-    Serial3.print("Stepper moviendose");
+    //Serial3.print("Stepper moviendose");
     stepperMove(); //Mover el stepper
-    contarTiempo(); //Verifica el tiempo actual
+    //contarTiempo(); //Verifica el tiempo actual
     lcd.clear();
-    lcd.setCursor(0,0);
+    lcd.setCursor(0, 0);
     lcd.print(mensajeEstacion);
   }
   mensajeEstacion = "ESTACION ";
@@ -467,7 +485,7 @@ void mensajeScroll() { //Scroll del texto de izquierda a derecha
           msj.row = msj.row + 1;
           //Serial3.println(msj.row);
           //return;
-          contarTiempo(); //Verifica el contador del reloj
+          //contarTiempo(); //Verifica el contador del reloj
         }
         msj.row = 0;
         msj.col = msj.col + 1;
@@ -480,7 +498,7 @@ void mensajeScroll() { //Scroll del texto de izquierda a derecha
         //(msj.d == 4 || msj.d == 8 || msj.d == 12|| msj.d == 16|| msj.d == 20|| msj.d == 24|| msj.d == 28|| msj.d == 32|| msj.d == 36|| msj.d == 40|| msj.d == 44|| msj.d == 48|| msj.d == 52) &&
         return;
       } else {
-        contarTiempo(); //Verifica el contador del reloj
+        //contarTiempo(); //Verifica el contador del reloj
       }
     }
     msj.d = 0;
@@ -506,8 +524,8 @@ void mensajeScroll() { //Scroll del texto de izquierda a derecha
 
 //#####********************************STEPPER********************************#####
 void stepperMove() {
-  stepper.setSpeed(10);// defino la velocidad del motor xd
-  stepper.step(30);//bulgarmente digo q de 5 vueltas xd
+  stepper.setSpeed(8);// defino la velocidad del motor xd
+  stepper.step(9);//bulgarmente digo q de 5 vueltas xd
 }
 
 //#####********************************STEPPER********************************#####
@@ -522,11 +540,20 @@ void stepperMove() {
 void temperatura() {
   int val = analogRead(A0);//leo en A1
   int porcentaje = map(val, 21, 359, -40, 124);//lo paso a porcentaje
-  String valor="@";
-  String conversion;
-  Serial1.print("temperatura: ");
-  Serial1.print(porcentaje);
-  Serial1.println();
+
+  String conversion = "";
+
+
+  if (tempInicial != porcentaje) {
+    //conversion = String(porcentaje);
+    tempInicial = porcentaje;
+    valor = "@ ";
+    valor += porcentaje;
+    Serial.println(valor);
+    delay(50);
+    conversion = "";
+  }
+
 
   if (porcentaje < 37) {
     // Serial1.println("Led verde");
@@ -561,12 +588,12 @@ void temperatura() {
     reiniciar();
     //lcd.clear();
   }
-  conversion = String(porcentaje);
-  valor +=conversion;
-  Serial.print(valor);//Envio de señal de temperatura
-  valor="@";
-  conversion="";
-  
+
+
+
+
+
+
 }
 
 //**********************************************************   TODO LO RELACIONADO A TEMPERATURA   ****************************************************************
@@ -593,199 +620,250 @@ void contarTiempo() { //Método que calcula si el contador del tiempo debe aumen
     tiempo();
     tiempoMillis = millis(); //Calcula si ya ha pasado 1 segundo
     temperatura();// verifica la temperatura cada segundo
+    //reloj();
   }
 }
 
 void tiempo() {
+  if (usuariocorrecto) {
+    
+    //calcula las decimas de segundo 0-5
+    if (decOn == true) {
+      switch (decimas) {
+        case 0 :
+          //Serial1.println("0 dec!" );
+          decimas++;
+          PORTL = B11111100;//print 0 in led
+          decOn = false;
+          dectemp = 0;
+          break;
+        case 1 :
+          //Serial1.println("1 dec" );
+          decimas++;
+          PORTL = B01100000;//print 1 in led
+          decOn = false;
+          dectemp = 1;
+          break;
+        case 2 :
+          //Serial1.println("2 dec" );
+          decimas++;
+          PORTL = B11011010;//print 2 in led
+          decOn = false;
+          dectemp = 2;
+          break;
+        case 3 :
+          //Serial1.println("3 dec" );
+          decimas++;
+          PORTL = B11110010;//print 3 in led
+          decOn = false;
+          dectemp = 3;
+          break;
+        case 4 :
+          //Serial1.println("4 dec" );
+          decimas++;
+          PORTL = B01100110;//print 4 in led
+          decOn = false;
+          dectemp = 4;
+          break;
+        case 5 :
+          //Serial1.println("5 dec" );
+          decimas = 0;
+          PORTL = B10110110;//print 5 in led
+          decOn = false;
+          dectemp = 5;
+          break;
+        default ://activamos minutos
+          printf("F\n" );
+      }
 
-  //calcula las decimas de segundo 0-5
-  if (decOn == true) {
-    switch (decimas) {
-      case 0 :
-        //Serial1.println("0 dec!" );
-        decimas++;
-        PORTL = B11111100;//print 0 in led
-        decOn = false;
-        break;
-      case 1 :
-        //Serial1.println("1 dec" );
-        decimas++;
-        PORTL = B01100000;//print 1 in led
-        decOn = false;
-        break;
-      case 2 :
-        //Serial1.println("2 dec" );
-        decimas++;
-        PORTL = B11011010;//print 2 in led
-        decOn = false;
-        break;
-      case 3 :
-        //Serial1.println("3 dec" );
-        decimas++;
-        PORTL = B11110010;//print 3 in led
-        decOn = false;
-        break;
-      case 4 :
-        //Serial1.println("4 dec" );
-        decimas++;
-        PORTL = B01100110;//print 4 in led
-        decOn = false;
-        break;
-      case 5 :
-        //Serial1.println("5 dec" );
-        decimas = 0;
-        PORTL = B10110110;//print 5 in led
-        decOn = false;
-        break;
-      default ://activamos minutos
-        printf("F\n" );
     }
 
-  }
+    //calcula los min 0-9
+    if (minOn == true) {
+      switch (minuto) {
 
-  //calcula los min 0-9
-  if (minOn == true) {
-    switch (minuto) {
+        case 0 :
+          //Serial1.println("1s" );
+          minuto++;
+          PORTC = B11111100;//print 0 in led
+          minOn = false;
+          mintemp = 0;
+          break;
+        case 1 :
+          //Serial1.println("1s" );
+          minuto++;
+          PORTC = B01100000;//print 1 in led
+          minOn = false;
+          mintemp = 1;
+          break;
+        case 2 :
+          //Serial1.println("2s" );
+          minuto++;
+          PORTC = B11011010;//print 2 in led
+          minOn = false;
+          mintemp = 2;
+          break;
+        case 3 :
+          //Serial1.println("3s" );
+          minuto++;
+          PORTC = B11110010;//print 3 in led
+          minOn = false;
+          mintemp = 3;
+          break;
+        case 4 :
+          //Serial1.println("4s" );
+          minuto++;
+          PORTC = B01100110;//print 4 in led
+          minOn = false;
+          mintemp = 4;
+          break;
+        case 5 :
+          //Serial1.println("5s" );
+          minuto++;
+          PORTC = B10110110;//print 5 in led
+          minOn = false;
+          mintemp = 5;
+          break;
+        case 6 :
+          //Serial1.println("6s" );
+          minuto++;
+          PORTC = B10111110;//print 6 in led
+          minOn = false;
+          mintemp = 6;
+          break;
+        case 7 :
+          //Serial1.println("7s" );
+          minuto++;
+          PORTC = B11100000;//print 7 in led
+          minOn = false;
+          mintemp = 7;
+          break;
+        case 8 :
+          //Serial1.println("8s" );
+          minuto++;
+          PORTC = B11111110;//print 8 in led
+          minOn = false;
+          mintemp = 8;
+          break;
+        case 9 :
+          //Serial1.println("9s" );
+          //segundos = 0;//reinicio de 9 a 0
+          minuto++;
+          minOn = false;//xd
+          PORTC = B11100110;//print 9 in led
+          mintemp = 9;
+          break;
+        default :
+          printf("F\n" );
+      }
+    }
 
+    //segundos------------------------------------------------------------------------------ 0-9
+    switch (segundos) {
       case 0 :
-        //Serial1.println("1s" );
-        minuto++;
-        PORTC = B11111100;//print 0 in led
-        minOn = false;
+        //Serial1.println("0s!" );
+        segundos++;
+        decOn = false;
+        PORTK = B11111100;//print 0 in led
+        sectemp = 0;
         break;
       case 1 :
         //Serial1.println("1s" );
-        minuto++;
-        PORTC = B01100000;//print 1 in led
-        minOn = false;
+        segundos++;
+        PORTK = B01100000;//print 1 in led
+        sectemp = 1;
         break;
       case 2 :
         //Serial1.println("2s" );
-        minuto++;
-        PORTC = B11011010;//print 2 in led
-        minOn = false;
+        segundos++;
+        PORTK = B11011010;//print 2 in led
+        sectemp = 2;
         break;
       case 3 :
         //Serial1.println("3s" );
-        minuto++;
-        PORTC = B11110010;//print 3 in led
-        minOn = false;
+        segundos++;
+        PORTK = B11110010;//print 3 in led
+        sectemp = 3;
         break;
       case 4 :
         //Serial1.println("4s" );
-        minuto++;
-        PORTC = B01100110;//print 4 in led
-        minOn = false;
+        segundos++;
+        PORTK = B01100110;//print 4 in led
+        sectemp = 4;
         break;
       case 5 :
         //Serial1.println("5s" );
-        minuto++;
-        PORTC = B10110110;//print 5 in led
-        minOn = false;
+        segundos++;
+        PORTK = B10110110;//print 5 in led
+        sectemp = 5;
         break;
       case 6 :
         //Serial1.println("6s" );
-        minuto++;
-        PORTC = B10111110;//print 6 in led
-        minOn = false;
+        segundos++;
+        PORTK = B10111110;//print 6 in led
+        sectemp = 6;
         break;
       case 7 :
         //Serial1.println("7s" );
-        minuto++;
-        PORTC = B11100000;//print 7 in led
-        minOn = false;
+        segundos++;
+        PORTK = B11100000;//print 7 in led
+        sectemp = 7;
         break;
       case 8 :
         //Serial1.println("8s" );
-        minuto++;
-        PORTC = B11111110;//print 8 in led
-        minOn = false;
+        segundos++;
+        PORTK = B11111110;//print 8 in led
+        sectemp = 8;
         break;
       case 9 :
         //Serial1.println("9s" );
-        //segundos = 0;//reinicio de 9 a 0
-        minuto++;
-        minOn = false;//xd
-        PORTC = B11100110;//print 9 in led
+        segundos = 0;//reinicio de 9 a 0
+        decOn = true;//cuando llega a nueve tonces reinicio a 0 el contador de seg y le sumo +1 en decimas
+        PORTK = B11100110;//print 9 in led
+
+        if (decimas == 0) {
+          minOn = true;
+        }
+
+        if (decimas == 0 && minuto == 10) {
+          minuto = 0;
+          PORTC = B11111100;//print 0 in led
+
+        }
+        sectemp = 9;
         break;
       default :
         printf("F\n" );
     }
+    //Envio de tiempo a la aplicación<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
   }
-
-  //segundos------------------------------------------------------------------------------ 0-9
-  switch (segundos) {
-    case 0 :
-      //Serial1.println("0s!" );
-      segundos++;
-      decOn = false;
-      PORTK = B11111100;//print 0 in led
-      break;
-    case 1 :
-      //Serial1.println("1s" );
-      segundos++;
-      PORTK = B01100000;//print 1 in led
-      break;
-    case 2 :
-      //Serial1.println("2s" );
-      segundos++;
-      PORTK = B11011010;//print 2 in led
-      break;
-    case 3 :
-      //Serial1.println("3s" );
-      segundos++;
-      PORTK = B11110010;//print 3 in led
-      break;
-    case 4 :
-      //Serial1.println("4s" );
-      segundos++;
-      PORTK = B01100110;//print 4 in led
-      break;
-    case 5 :
-      //Serial1.println("5s" );
-      segundos++;
-      PORTK = B10110110;//print 5 in led
-      break;
-    case 6 :
-      //Serial1.println("6s" );
-      segundos++;
-      PORTK = B10111110;//print 6 in led
-      break;
-    case 7 :
-      //Serial1.println("7s" );
-      segundos++;
-      PORTK = B11100000;//print 7 in led
-      break;
-    case 8 :
-      //Serial1.println("8s" );
-      segundos++;
-      PORTK = B11111110;//print 8 in led
-      break;
-    case 9 :
-      //Serial1.println("9s" );
-      segundos = 0;//reinicio de 9 a 0
-      decOn = true;//cuando llega a nueve tonces reinicio a 0 el contador de seg y le sumo +1 en decimas
-      PORTK = B11100110;//print 9 in led
-
-      if (decimas == 0) {
-        minOn = true;
-      }
-
-      if (decimas == 0 && minuto == 10) {
-        minuto = 0;
-        PORTC = B11111100;//print 0 in led
-
-      }
-      break;
-    default :
-      printf("F\n" );
-  }
-//Envio de tiempo a la aplicación<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
+  temperatura();// verifica la temperatura cada segundo
 }
 
 
 //*************************************************************    TODO LO RELACIONADO AL RELOJ *****************************************************************
+
+//void reloj() {
+//conjunto="";
+//  String d = String(dectemp);
+//
+//  String m = String(mintemp);
+//
+//  String s = String(sectemp);
+//
+//  // Serial.println("tiempo " + m + ":" + d + s);
+//  if (valor.length() > 0   && d.length() > 0  && m.length() > 0 && s.length() > 0 ) {
+//    conjunto = "@ " + valor + " " + m + ":" + d + s;
+//    Serial.println(conjunto);
+//    delay(300);
+//    //Serial3.println(conjunto);
+//    valor="";
+//  }
+//
+//  //  Serial3.println(valor + " " + m + ":" + d + s);
+//}
 
 
 
@@ -832,7 +910,7 @@ void ingreso() {
     usuariocorrecto = !false;
   }
   else {
-    
+
     lcd.print("ERROR");
     delay(500);
     //Enviar señal a la app para reiniciar<---------------------------------------------
