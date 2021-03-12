@@ -7,7 +7,7 @@
 
 //#####*****************************DEFINICIÓN DE VARIABLES GLOBALES*****************************#####
 int vel_scroll = 0; //Variable para controlar la velocidad del mensaje scroll
-const String user = "1"; //Contraseña
+const String user = "123456"; //Contraseña
 const byte rows = 4; //4 filas
 const byte cols = 3; //3 columnas
 const int btnIn1 = 2; //boton de prueba pasar a pantalla 2 comentar cuando ya no sea necesario
@@ -22,12 +22,12 @@ int contadorTemp = 0;  //Contador temporal del número de matrices
 long tiempoMillis = 0; //Variable para llevar el control del tiempo y poder contar en el reloj
 String mensajeEstacion = "ESTACION "; //Mensaje que mostrará la estación actual
 // variables temporales para el reloj
-int dectemp = 0;
-int mintemp = 0;
-int sectemp = 0;
+int dectemp = 0; //Variable que lleva el conteo de las decimas transcurridas
+int mintemp = 0; //Variable que lleva el conteo de los minutos transcurridos
+int sectemp = 0; //Variable que lleva el conteo de los segundos transcurridos
 
-int tempInicial = 0;
-String valor;
+int tempInicial = 0; //Inicialización del tiempo en 0
+String valor; //Variable que guardará la conversión de la temperatura para transferirla por medio del puerto serial
 String conjunto = "";
 
 //Impresiones en matriz de mensajes predefinidos
@@ -560,33 +560,41 @@ void temperatura() {
     digitalWrite(A1, HIGH);
     digitalWrite(A2, LOW);
     digitalWrite(A3, LOW);
-    //lcd.clear();
+    lcd.clear();
   } else if (porcentaje > 36 && porcentaje < 46) {
     // Serial1.println("Led amarilla");
-    lcd.clear();
+    
     digitalWrite(A1, LOW);
     digitalWrite(A2, HIGH);
     digitalWrite(A3, LOW);
-
     lcd.setCursor(0, 0);
-    lcd.print("WARNING");
+
+    if(usuariocorrecto == true){
+      lcd.clear();
+      lcd.print("WARNING");
+    }
     //delay(2000);
     //lcd.clear();
 
     // en lcd imprimir warning
   } else {
     // Serial1.println("Led rojo");
-    lcd.clear();
+    //lcd.clear();
     digitalWrite(A1, LOW );
     digitalWrite(A2, LOW);
     digitalWrite(A3, HIGH);
     // en lcd imprimir ERROR
     lcd.setCursor(0, 0);
-    lcd.print("ERROR");
+    //lcd.print("ERROR");
     delay(1000);
     //Enviar señal a app para reiniciar<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    if(usuariocorrecto == true){
+      lcd.clear();
+      lcd.print("ERROR");
+    }
     reiniciar();
     //lcd.clear();
+    
   }
 
 
@@ -924,7 +932,7 @@ void ingreso() {
 
 void reiniciar() {
   //Reiniciar reloj
-  lcd.clear();
+  //lcd.clear();
   segundos = 0;
   decimas = 1;
   minuto = 1;
