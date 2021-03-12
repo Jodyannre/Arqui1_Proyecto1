@@ -525,7 +525,7 @@ void mensajeScroll() { //Scroll del texto de izquierda a derecha
 //#####********************************STEPPER********************************#####
 void stepperMove() {
   stepper.setSpeed(8);// defino la velocidad del motor xd
-  stepper.step(9);//bulgarmente digo q de 5 vueltas xd
+  stepper.step(15);//bulgarmente digo q de 5 vueltas xd
 }
 
 //#####********************************STEPPER********************************#####
@@ -560,7 +560,9 @@ void temperatura() {
     digitalWrite(A1, HIGH);
     digitalWrite(A2, LOW);
     digitalWrite(A3, LOW);
-    lcd.clear();
+    if (usuariocorrecto && matrizActiva == false && stepperActivo == false){
+      lcd.clear();
+    }  
   } else if (porcentaje > 36 && porcentaje < 46) {
     // Serial1.println("Led amarilla");
     
@@ -569,7 +571,7 @@ void temperatura() {
     digitalWrite(A3, LOW);
     lcd.setCursor(0, 0);
 
-    if(usuariocorrecto == true){
+    if(usuariocorrecto == true && matrizActiva == false && stepperActivo == false){
       lcd.clear();
       lcd.print("WARNING");
     }
@@ -588,7 +590,7 @@ void temperatura() {
     //lcd.print("ERROR");
     delay(1000);
     //Enviar señal a app para reiniciar<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    if(usuariocorrecto == true){
+    if(usuariocorrecto == true && matrizActiva == false && stepperActivo == false){
       lcd.clear();
       lcd.print("ERROR");
     }
